@@ -2,106 +2,65 @@
 
 import pandas as pd
 import os
+import shutil
 import subprocess
 import platform
+import re
 
-
-class ConfigMainModel:
-    def __init__(self, platform, item):
-        self.platform = platform
-        self.item = item
-
-
-class ConfigItemModel:
-    def __init__(self, folderName, fileName):
-        self.folderName = folderName
-        self.fileName = fileName
-
-
+# 开始处理 excel 转为 本地化的语言
 def create_files_from_excel(file_path, output_dir):
-    """
-    根据 Excel 内容生成 Android 和 iOS 的文件结构和内容。
-
-    :param file_path: 输入的 Excel 文件路径
-    :param output_dir: 生成文件的根目录
-    """
-    print(f"读取文件: {file_path}")
     # 读取 Excel 文件
     df = pd.read_excel(file_path)
-
     # 找到 Key 行及之后的内容
     key_row_index = df[df.iloc[:, 0] == "Key"].index[0]
     data_start = key_row_index + 1
-
-    # 是否生成 iOS 的本地化文件
-    generate_ios = False
-    # 是否生成 Android 的本地化文件
-    generate_android = False
     # 得到创建文件的声明
     dir_dict_data = get_dir_data_dict(df.iloc[0:data_start - 1])
-    # print(f"输出文件夹的声明: {file_df}")
-    #
     # key 所在的 column 数据
     key_row = df.iloc[key_row_index]
     content_df = df.iloc[data_start:].reset_index(drop=True)
     for key, value in dir_dict_data.items():
-        print(f"遍历数据: key: {key} , value{value} , key row: {key_row}")
+        # 判断对应平台是否同时存在 file | folder
+        if "file" in value and "folder" in value:
+            # 创建文件夹以及得到语言写入的地址
+            dir_dict_data[key]["writes"] = create_localizable_dir(key, value, output_dir)
+
+    # 开始遍历表格内容的数据并且生成指定的本地化语言文件
+    for idx, row in content_df.iterrows():
+        column_key = row.values[0]
+        values = row.iloc[1:]
+        for r_idx, r_column in enumerate(values):
+            for key, value in dir_dict_data.items():
+                if key == "iOS":
+                    file_path = value["writes"][r_idx]
+                    with open(file_path, "a", encoding="utf-8") as f:
+                        # 判断 值内的内容是否存在" 并且没有添加转义符号
+                        r_column = escape_unescaped_quotes(r_column)
+                        r_column = escape_android_unit_to_ios(r_column)
+                        # 开始写入数据
+                        f.write(f"\"{column_key}\" = \"{r_column}\";\n")
 
 
-        # 表格的第一行
-        # first_row = file_df.columns.tolist()
-        # if first_row[0].find("Android") != -1 and row.iloc[0].find("Android") != -1:
-        #     generate_android = True
-        #     folder_path = os.path.join(output_dir, "Android")
-        #     create_localizable_dir(first_row, row, folder_path)
-        #
-        # elif first_row[0].find("iOS") != -1 and row.iloc[0].find("iOS") != -1:
-        #     generate_ios = True
-        #     folder_path = os.path.join(output_dir, "iOS")
-        #     create_localizable_dir(first_row, row, folder_path)
-        # else:
-        #     # 判断是创建 文件夹还是 文件
-        #     print(f"遍历其他的情况")
+# 使用正则表达式查找并转义未转义的双引号
+def escape_unescaped_quotes(text):
+    if isinstance(text, str):
+        return re.sub(r'(?<!\\)"', r'\\"', text)
+    else:
+        # 如果不是字符串，返回原始值或其他默认值
+        return text
 
 
-
-
-        # os.makedirs(folder_path, exist_ok=True)
-        # file_path = os.path.join(folder_path, file_name)
-    # for idx, row in content_df.iterrows():
-        # if idx == 0:
-            # print(f"当前输出的第一行的数据: {row}")
-
-    # for platform, config in platforms.items():
-    #     folder_col = config["folder_col"]
-    #     file_col = config["file_col"]
-    #     base_dir = config["base_dir"]
-    #
-    #     print(f"输出平台 {folder_col}  / file {folder_col} / basedir {base_dir}")
-        # 遍历每一行，生成文件夹和文件
-        # for _, row in content_df.iterrows():
-
-            # print(f"输出Row {row}")
-            # folder_name = row[folder_col]
-            # file_name = row[file_col]
-
-
-            # if not pd.notna(folder_name) or not pd.notna(file_name):
-            #     continue  # 跳过无效行
-            #
-            # # 构造完整路径
-            # folder_path = os.path.join(base_dir, folder_name)
-            # os.makedirs(folder_path, exist_ok=True)
-            # file_path = os.path.join(folder_path, file_name)
-            #
-            # # 写入文件内容
-            # with open(file_path, "w", encoding="utf-8") as f:
-            #     for lang, value in row.items():
-            #         if lang in key_row.values and pd.notna(value):
-            #             key = row["Key"]
-            #             f.write(f"{key} = {value}\n")
-            #
-            # print(f"[{platform}] 文件生成: {file_path}")
+# 将Android 中的通用符号转为iOS中使用的符号
+def escape_android_unit_to_ios(text):
+    if isinstance(text, str):
+        # 替换 %(数字)$s 为 %@
+        text = re.sub(r'%\d+\$s', '%@', text)
+        # 替换 %(数字)$d 为 %d
+        text = re.sub(r'%\d+\$d', '%d', text)
+        return text.replace("%s", "%@")
+    else:
+        # 如果不是字符串，返回原始值或其他默认值
+        return text
 
 
 # 获取文件夹以及文件的数据
@@ -130,19 +89,19 @@ def get_dir_data_dict(file_df):
 
 
 # 创建本地化的文件夹, 并返回目标文件的地址
-def create_localizable_dir(first_row, row, folder_path):
+def create_localizable_dir(platform, dict, root_path):
     file_path_list = []
-    # 生成子目录(判断column 是文件夹还是文件)
-    folder_data_source = first_row if first_row and "Folder Name" in first_row[0] else row.columns.tolist()
-    # 移除第一个字符串
-    folder_data_source = folder_data_source[1:]
-    file_data_source = first_row if first_row and "File Name" in first_row[0] else row.values
-    file_data_source = file_data_source[1:]
+    folder_path = os.path.join(root_path, platform)
+    child_list = []
     # 创建子目录
-    for item_idx, value in enumerate(folder_data_source):
-        child_path = os.path.join(folder_path, value)
-        os.makedirs(child_path, exist_ok=True)
-        file_path_list.append(os.path.join(child_path, file_data_source[item_idx]))
+    for key, value in dict.items():
+        for idx, item in enumerate(value):
+            if key == "folder":
+                child_path = os.path.join(folder_path, item)
+                os.makedirs(child_path, exist_ok=True)
+                child_list.append(child_path)
+            elif key == "file":
+                file_path_list.append(os.path.join(child_list[idx], item))
     return file_path_list
 
 
@@ -212,17 +171,22 @@ def find_exc_file(directory):
 if __name__ == "__main__":
     # excel_path = get_excel_folder()  # 替换为实际路径
 
-    excel_path = "/Users/apple/Downloads/替换/result.xlsx"
+    excel_path = "/Users/wang/Downloads/test/result.xlsx"
 
     # 输出的目录 判断是否存在 output 文件夹，如果没有则创建
     output_directory = os.path.join(os.path.dirname(excel_path), "output")
 
-    if not os.path.exists(output_directory):
-        # 不存在文件夹创建了文件夹
-        os.makedirs(output_directory)
+    if os.path.exists(output_directory):
+        # 如果文件夹存在删除文件夹
+        try:
+            shutil.rmtree(output_directory)  # 递归删除文件夹及其内容
+            print(f"文件夹 {output_directory} 及其内容已成功删除")
+        except Exception as e:
+            print(f"删除文件夹失败: {e}")
 
+    os.makedirs(output_directory)
     # 开始执行操作
     create_files_from_excel(excel_path, output_directory)
 
     # 打开执行后的文件夹
-    open_folder(output_directory)
+    # open_folder(output_directory)
