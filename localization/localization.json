@@ -1,0 +1,40 @@
+{
+  "en": {
+    "start_processing": "------------------start---------------------",
+    "complete_processing": "------------------completion---------------------",
+    "delete_folder_failed": "Failed to delete folder: {error}",
+    "system_language": "System language: {language}",
+    "choose_excel_folder": "Enter the path to the folder containing the Excel file:\n",
+    "not_a_directory": "The input is not a directory, please try again.",
+    "file_not_found": "No {suffix} file found.",
+    "choose_file": "Choose a file to use:",
+    "invalid_number": "Invalid number, please enter again.",
+    "enter_valid_number": "Please enter a valid number:",
+    "please_input_file_no": "Please enter a file number: \n",
+    "find_multiple_files": "Multiple {suffix} files found, please select the one you want to use: \n",
+    "this_path_not_folder": "The current path is not a folder.",
+    "input_execute_folder_tip": "Excel folder path for performing multi-language localization:\n",
+    "bugly_dsym_upload": "Bugly upload",
+    "excel_generate_dev_file": "Excel file multi-language file generation",
+    "excel_file_language_replace": "Excel specifies the language matching replacement"
+  },
+  "zh": {
+    "start_processing": "------------------开始---------------------",
+    "complete_processing": "------------------完成---------------------",
+    "delete_folder_failed": "删除文件夹失败: {error}",
+    "system_language": "系统语言: {language}",
+    "choose_excel_folder": "请输入包含 Excel 文件的文件夹路径:\n",
+    "please_input_file_no": "请输入文件编号：\n",
+    "not_a_directory": "输入内容不是文件夹，请重试。",
+    "file_not_found": "未找到任何 {suffix} 文件。",
+    "choose_file": "请选择一个文件进行操作:",
+    "invalid_number": "无效的编号，请重新输入。",
+    "enter_valid_number": "请输入有效的数字:",
+    "find_multiple_files": "找到多个 {suffix} 文件，请选择要使用的文件：\n",
+    "this_path_not_folder": "当前输入内容不是文件的目录",
+    "input_execute_folder_tip": "执行多语言本地化的Excel文件夹路径:\n",
+    "bugly_dsym_upload": "Bugly 符号表上传",
+    "excel_generate_dev_file": "excel 文件开发多语言生成",
+    "excel_file_language_replace": "excel 指定的语言匹配替换"
+  }
+}
