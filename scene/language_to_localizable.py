@@ -43,6 +43,16 @@ def create_files_from_excel(file_path, output_dir):
 
 
 def writer_data(file_path, column_key, columns, col_idx, col_val, target_platform, row_idx, max_row_len):
+    # flutter 需要单独处理创建一个strings的文件
+    if target_platform == "Flutter" and col_idx == 0:
+        strings_path = os.path.join(os.path.dirname(os.path.dirname(file_path)), "strings.dart")
+        with open(strings_path, "a", encoding="utf-8") as f:
+            if row_idx == 0:
+                f.write("class StrRes {\n")
+            f.write(f"\tstatic get {column_key} => '{column_key}'.tr;\n")
+            if row_idx + 1 == max_row_len:
+                f.write("}")
+
     with open(file_path, "a", encoding="utf-8") as f:
         if pd.isna(col_val) and col_idx == 0:  # 判断是否是 NaN
             col_val = "None"
@@ -67,6 +77,18 @@ def writer_data(file_path, column_key, columns, col_idx, col_val, target_platfor
             # 文件的结尾
             if row_idx + 1 == max_row_len:
                 f.write(f"</resources>")
+        elif target_platform == "Flutter":
+            if row_idx == 0:
+                filename = os.path.basename(file_path).split(".")[0]
+                last = "{"
+                f.write(f"const Map<String, String> {filename} = {last}\n")
+            f.write(f"\t\"{column_key}\": \"{col_val}\",\n")
+            if row_idx + 1 == max_row_len:
+                f.write("};")
+
+
+# /Users/apple/Documents/需要生成语言的文件
+# def generate_flutter_strings_file():
 
 
 # 使用正则表达式查找并转义未转义的双引号
@@ -145,8 +167,8 @@ def create_localizable_dir(target_platform, target_dict, root_path):
 
 # 使用示例
 if __name__ == "__main__":
-    # excel_path = get_execute_folder()  # 替换为实际路径
-    excel_path = "/Users/apple/Downloads/替换/result.xlsx"
+    excel_path = get_execute_folder()  # 替换为实际路径
+    # excel_path = "/Users/apple/Downloads/替换/result.xlsx"
 
     # 输出的目录 判断是否存在 output 文件夹，如果没有则创建
     output_directory = os.path.join(os.path.dirname(excel_path), "output")

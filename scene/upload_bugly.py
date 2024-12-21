@@ -114,27 +114,30 @@ def find_dsym_in_directory(directory):
     return None
 
 
-# 扫描当前的目录并设置 jar包的地址以及 上传文件的目录 上传的版本
-list_files_in_current_directory()
+def run_update_bugly():
+    # 扫描当前的目录并设置 jar包的地址以及 上传文件的目录 上传的版本
+    list_files_in_current_directory()
 
-# 构建命令
-command = [
-    "java",
-    "-jar",
-    config.jarFilePath,
-    "-appid", config.appid,
-    "-appkey", config.appKey,
-    "-bundleid", config.bundleId,
-    "-version", config.version,
-    "-platform", 'IOS',
-    "-inputSymbol", config.sourcePath
-]
+    # 构建命令
+    command = [
+        "java",
+        "-jar",
+        config.jarFilePath,
+        "-appid", config.appid,
+        "-appkey", config.appKey,
+        "-bundleid", config.bundleId,
+        "-version", config.version,
+        "-platform", 'IOS',
+        "-inputSymbol", config.sourcePath
+    ]
 
-try:
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    print(f"命令执行完成，返回码: {result.returncode}")
-    print(f"输出: {result.stdout}")
-    print(f"错误信息: {result.stderr}" if result.stderr else "无错误信息")
-except Exception as e:
-    print(f"执行命令时出错: {e}")
+    try:
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(f"命令执行完成，返回码: {result.returncode}")
+        print(f"输出: {result.stdout}")
+        print(f"错误信息: {result.stderr}" if result.stderr else "无错误信息")
+    except Exception as e:
+        print(f"执行命令时出错: {e}")
+
+
 
