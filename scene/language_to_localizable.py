@@ -166,7 +166,7 @@ def create_localizable_dir(target_platform, target_dict, root_path):
 
 
 # 使用示例
-if __name__ == "__main__":
+def run_exc_lang_to_localizable_files():
     excel_path = get_execute_folder()  # 替换为实际路径
     # excel_path = "/Users/apple/Downloads/替换/result.xlsx"
 

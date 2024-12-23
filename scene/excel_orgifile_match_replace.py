@@ -112,16 +112,14 @@ def save_result(directory, result_df):
     print(f"Result saved to {output_file_path}")
 
 
-def main():
+def run_exc_org_match_rep():
     # 输入目标目录
-    # directory = input("Enter the target directory: ").strip()
-    directory = "/Users/apple/Downloads/替换"
+    directory = input("Enter the target directory: ").strip()
+    # directory = "/Users/apple/Downloads/替换"
     # 载入文件
     source_df, replace_df = load_files(directory)
-
     if source_df is None or replace_df is None:
         return
-
     print("---------------准备开始替换文本----------------")
     # 替换内容
     result_df = replace_values(source_df, replace_df)
@@ -132,5 +130,3 @@ def main():
     open_folder(directory)
 
 
-if __name__ == "__main__":
-    main()

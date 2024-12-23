@@ -1,6 +1,8 @@
 
 
 from scene.upload_bugly import run_update_bugly
+from scene.language_to_localizable import run_exc_lang_to_localizable_files
+from scene.excel_orgifile_match_replace import run_exc_org_match_rep
 
 if __name__ == "__main__":
     # 执行功能分选
@@ -22,9 +24,9 @@ if __name__ == "__main__":
             if choice == 1:
                 run_update_bugly()
             elif choice == 2:
-                generate_multilanguage()
+                run_exc_lang_to_localizable_files()
             elif choice == 3:
-                replace_language_text()
+                run_exc_org_match_rep()
             else:
                 print("无效的选择，请输入 1 到 3 之间的数字。")
         except ValueError:

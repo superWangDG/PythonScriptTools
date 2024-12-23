@@ -16,7 +16,14 @@
     "input_execute_folder_tip": "Excel folder path for performing multi-language localization:\n",
     "bugly_dsym_upload": "Bugly upload",
     "excel_generate_dev_file": "Excel file multi-language file generation",
-    "excel_file_language_replace": "Excel specifies the language matching replacement"
+    "excel_file_language_replace": "Excel specifies the language matching replacement",
+    "root_choose_title_1": "1. Bugly symbol table upload",
+    "root_choose_title_2": "2. Excel file development multi-language generation",
+    "root_choose_title_3": "3. Excel specified language text matching and replacement",
+    "please_sel_func": "Please select a function:",
+    "please_enter_func_num": "Please enter a function number (1-3):",
+    "invalid_selection_num": "Invalid selection, please enter a number between 1 and 3.",
+    "invalid_input": "Invalid input, please enter a number."
   },
   "zh": {
     "start_processing": "------------------开始---------------------",
@@ -35,6 +42,13 @@
     "input_execute_folder_tip": "执行多语言本地化的Excel文件夹路径:\n",
     "bugly_dsym_upload": "Bugly 符号表上传",
     "excel_generate_dev_file": "excel 文件开发多语言生成",
-    "excel_file_language_replace": "excel 指定的语言匹配替换"
+    "excel_file_language_replace": "excel 指定的语言匹配替换",
+    "root_choose_title_1": "1.Bugly 符号表上传",
+    "root_choose_title_2": "2.excel 文件开发多语言生成",
+    "root_choose_title_3": "3.excel 指定的语言文本匹配替换",
+    "please_sel_func": "请选择一个功能:",
+    "please_enter_func_num": "请输入功能编号 (1-3):",
+    "invalid_selection_num": "无效的选择，请输入 1 到 3 之间的数字。",
+    "invalid_input":"输入无效，请输入数字。"
   }
 }
