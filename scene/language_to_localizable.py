@@ -49,7 +49,8 @@ def writer_data(file_path, column_key, columns, col_idx, col_val, target_platfor
         with open(strings_path, "a", encoding="utf-8") as f:
             if row_idx == 0:
                 f.write("class StrRes {\n")
-            f.write(f"\tstatic get {column_key} => '{column_key}'.tr;\n")
+            key = 'continueStr' if column_key == 'continue' else column_key
+            f.write(f"\tstatic get {key} => '{column_key}'.tr;\n")
             if row_idx + 1 == max_row_len:
                 f.write("}")
 
