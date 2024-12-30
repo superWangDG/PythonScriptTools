@@ -2,29 +2,52 @@
 import os
 import subprocess
 import re
-from utils.file_utils import get_last_folder_name
+
+from localization.localization import get_localized_text
+from utils.cache_utils import load_from_cache, save_to_cache
+from utils.file_utils import get_last_folder_name, select_source
+
+
+def get_init_exc_path(orgDict=None):
+    path = select_source(file_suffix_list=["json"])
+    if not path:
+        print(get_localized_text("no_choose_tip"))
+        return
+    data = {
+        "downloadJsonPath": path
+    }
+    if orgDict is None:
+        return data
+    # 将新数据合并到 orgDict 中
+    orgDict.update(data)
+    return orgDict
+
+
+def get_path(cache_json):
+    """获取或选择 Podfile 路径"""
+    if not cache_json or not cache_json.get("downloadJsonPath"):
+        # 如果没有缓存或 `podfileCommand` 数据缺失
+        cache_json = get_init_exc_path(cache_json)
+        if not cache_json:
+            return None, None  # 用户取消操作
+    else:
+        excel_path = cache_json["downloadJsonPath"]
+        print(get_localized_text("use_last_path", path=excel_path))
+        return cache_json, excel_path
+
+    return cache_json, cache_json["downloadJsonPath"]
 
 
 def run_download_medias():
-    urls = [
-        # "https://dow6.lzidw.com/20240108/33563_81e04ede/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-01.mp4",
-        "https://dow6.lzidw.com/20240114/33751_62aec794/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-02.mp4",
-        # "https://dow6.lzidw.com/20240121/33994_d910999e/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-03.mp4",
-        # "https://dow6.lzidw.com/20240129/34221_2385556a/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-04.mp4",
-        # "https://dow6.lzidw.com/20240205/34479_8f8f8476/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-05.mp4",
-        # "https://dow6.lzidw.com/20240212/34716_68533830/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-06.mp4",
-        # "https://dow.dowlz6.com/20240219/34957_ae7b0df2/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-07.mp4",
-        # "https://dow.dowlz6.com/20240226/35223_5c2a52b7/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-08.mp4",
-        # "https://dow.dowlz6.com/20240304/35439_6d355cb3/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-09.mp4",
-        # "https://dow.dowlz6.com/20240310/35711_73a3a763/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-10.mp4",
-        # "https://dow.dowlz6.com/20240318/36008_94f37e58/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-11.mp4",
-        # "https://dow.dowlz6.com/20240324/36314_d2cdc1b6/因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生第二季-12.mp4"
-    ]
-
-
+    cache_json = load_from_cache()
+    cache_json, excel_path = get_path(cache_json)
+    if not excel_path:
+        print(get_localized_text("no_choose_tip"))
+        return
+    urls_json = load_from_cache(excel_path[0])
 
     down_path = os.path.join(os.path.expanduser("~"), "Downloads")
-    for url in urls:
+    for url in urls_json:
         filename = get_last_folder_name(url)
         save_path = os.path.join(down_path, filename)
         # 构建命令
@@ -62,3 +85,8 @@ def run_download_medias():
                 print(f"下载失败，返回码: {process.returncode}")
         except Exception as e:
             print(f"执行命令时出错: {e}")
+
+    save_to_cache(urls_json)
+
+
+# 等级低于20级想要获取资源游戏主页右上角点击【活动】【新友召集令】绑定邀请码07-46-BV-BT-DI即可领取。各种兑换码送给欧皇的各位新手朋友兑换码   kaifu888  cx666    cx888   cx999  ty666  zb8w8 xls666  kaifu666  qingdian666  qingdian333  alw66 swz999 qingdian333 alw66 dasheng666 qitian888 happy2025长按复制即可
