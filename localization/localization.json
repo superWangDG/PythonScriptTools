@@ -55,6 +55,10 @@
     "please_valid_number": "请输入有效的编号!",
     "no_choose_tip": "未选择文件夹，程序退出。",
     "execution_operations_tip": "请选择执行的操作:",
-    "execution_operations": "执行的操作: {command} ,编号: {num}"
+    "execution_operations": "执行的操作: {command} ,编号: {num}",
+    "please_choose_folder": "请选择一个文件夹",
+    "use_last_path": "使用上一次的地址: {path}",
+    "use_last_command": "使用上一次的命令: {command}",
+    "reset_cache_complete": "--------------重置完成--------------"
   }
 }

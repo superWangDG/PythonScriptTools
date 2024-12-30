@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import subprocess
 import platform
+from localization.localization import get_localized_text
 
 
 def open_folder(path):
@@ -114,18 +115,18 @@ def save_result(directory, result_df):
 
 def run_exc_org_match_rep():
     # 输入目标目录
-    directory = input("Enter the target directory: ").strip()
+    directory = input(get_localized_text("please_choose_folder") + ": ").strip()
     # directory = "/Users/apple/Downloads/替换"
     # 载入文件
     source_df, replace_df = load_files(directory)
     if source_df is None or replace_df is None:
         return
-    print("---------------准备开始替换文本----------------")
+    print(get_localized_text("start_processing"))
     # 替换内容
     result_df = replace_values(source_df, replace_df)
     # 保存结果
     save_result(directory, result_df)
-    print("---------------替换文本结束----------------")
+    print(get_localized_text("complete_processing"))
     # 打开文件夹
     open_folder(directory)
 
