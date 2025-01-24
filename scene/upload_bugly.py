@@ -1,6 +1,9 @@
 import subprocess
 import os
 import re
+
+from utils.cache_utils import load_from_cache, get_list_use_folder_cache
+
 """
 这是一个bugly 上传 dYSM 文件的脚本
 """
@@ -25,9 +28,9 @@ config = ConfigModel(
 
 
 def list_files_in_current_directory():
-    # 获取当前脚本所在目录
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    # print(f"当前目录: {current_directory}\n")
+    # 选择文件夹所在目录
+    current_directory = get_list_use_folder_cache(load_from_cache(), "BuglyUpload")
+
     # 列出当前目录中的所有文件和文件夹
     files_and_folders = os.listdir(current_directory)
     for item in files_and_folders:
@@ -79,6 +82,7 @@ def get_valid_jar_path():
     获取有效的 jar 文件路径，若路径无效，要求用户重新输入
     """
     while True:
+        # exc_path = select_source(only_folder=True)
         jar_path = input("未找到 jar 包，请输入 buglyqq-upload-symbol.jar 的路径:\n")
         if jar_path.endswith(".jar") and os.path.isfile(jar_path):
             return jar_path

@@ -59,6 +59,9 @@
     "please_choose_folder": "请选择一个文件夹",
     "use_last_path": "使用上一次的地址: {path}",
     "use_last_command": "使用上一次的命令: {command}",
-    "reset_cache_complete": "--------------重置完成--------------"
+    "reset_cache_complete": "--------------重置完成--------------",
+    "choose_path_no_tip": "请输出指定编号用于选择地址(输入0选择新地址):",
+    "execution_path": "编号: ({num}), 目标: `{path}`",
+    "cancel_choose_tip": "取消了选择"
   }
 }

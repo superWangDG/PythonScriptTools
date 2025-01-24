@@ -1,10 +1,12 @@
 # 使用表格中的多语言文件生成对应系统的应用文件
+
 import pandas as pd
 import os
 import shutil
 import re
 
-from utils.file_utils import open_folder, get_execute_folder
+from utils.cache_utils import load_from_cache, save_to_cache, get_list_use_folder_cache
+from utils.file_utils import open_folder, select_source, find_exc_file
 from localization.localization import get_localized_text
 
 
@@ -88,10 +90,6 @@ def writer_data(file_path, column_key, columns, col_idx, col_val, target_platfor
                 f.write("};")
 
 
-# /Users/apple/Documents/需要生成语言的文件
-# def generate_flutter_strings_file():
-
-
 # 使用正则表达式查找并转义未转义的双引号
 def escape_unescaped_quotes(text):
     if isinstance(text, str):
@@ -168,12 +166,13 @@ def create_localizable_dir(target_platform, target_dict, root_path):
 
 # 使用示例
 def run_exc_lang_to_localizable_files():
-    excel_path = get_execute_folder()  # 替换为实际路径
-    # excel_path = "/Users/apple/Downloads/替换/result.xlsx"
-
-    # 输出的目录 判断是否存在 output 文件夹，如果没有则创建
-    output_directory = os.path.join(os.path.dirname(excel_path), "output")
-
+    # 加载缓存
+    result = get_list_use_folder_cache(load_from_cache(), "LanguageToLocalizable")
+    if not result:
+        print(get_localized_text("cancel_choose_tip"))
+        return
+    exc_path = find_exc_file(result, '.xlsx')
+    output_directory = os.path.join(os.path.dirname(exc_path), "output")
     if os.path.exists(output_directory):
         # 如果文件夹存在删除文件夹
         try:
@@ -184,7 +183,7 @@ def run_exc_lang_to_localizable_files():
     os.makedirs(output_directory)
     # 开始执行操作
     print(get_localized_text("start_processing"))
-    create_files_from_excel(excel_path, output_directory)
+    create_files_from_excel(exc_path, output_directory)
     print(get_localized_text("complete_processing"))
     # 打开执行后的文件夹
     open_folder(output_directory)
