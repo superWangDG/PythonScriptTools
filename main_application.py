@@ -1,5 +1,6 @@
 from scene.ios_podfile_handle import run_podfile_handle
 from scene.reset_cache import reset_cache
+from scene.strings_replace import run_strings_replace
 from scene.upload_bugly import run_update_bugly
 from scene.language_to_localizable import run_exc_lang_to_localizable_files
 from scene.excel_orgifile_match_replace import run_exc_org_match_rep
@@ -14,7 +15,8 @@ def running():
         "3.excel 指定的语言文本匹配替换",
         "4.执行iOS项目Cocoapods 的管理操作",
         "5.使用ffmpeg 下载媒体",
-        "6.重置缓存"
+        "6.使用Strings替换",
+        "7.重置缓存"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -33,6 +35,8 @@ def running():
         elif choice == 5:
             run_download_medias()
         elif choice == 6:
+            run_strings_replace()
+        elif choice == 7:
             # 重置后继续执行
             reset_cache()
             running()

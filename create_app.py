@@ -1,10 +1,11 @@
 # 用于打包 python 应用
 import os
 import subprocess
-from utils.file_utils import get_execute_folder, open_folder
+from utils.file_utils import get_execute_folder, open_folder, select_source
 
 
 def execute_command(file_path, file_name):
+    print(f"执行的文件路径:{file_path}")
     # 构建命令
     package_command = [
         "pyinstaller",
@@ -36,7 +37,9 @@ def execute_command(file_path, file_name):
 
 
 if __name__ == "__main__":
-    excel_path = get_execute_folder(".py")  # 替换为实际路径
+
+    # excel_path = get_execute_folder(".py")  # 替换为实际路径
+    excel_path = select_source(file_suffix_list=["py"])
     package_name = input("请输入应用的名称:\n")
     print("--------------开始执行打包操作-------------------")
-    execute_command(excel_path, package_name)
+    execute_command(excel_path[0], package_name)
