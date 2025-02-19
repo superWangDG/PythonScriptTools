@@ -15,7 +15,7 @@ def running():
         "3.excel 指定的语言文本匹配替换",
         "4.执行iOS项目Cocoapods 的管理操作",
         "5.使用ffmpeg 下载媒体",
-        "6.使用Strings替换",
+        "6.iOS多语言文件Value值使用替换的规则替换数据",
         "7.重置缓存"
     ]
     print("请选择一个功能:")
