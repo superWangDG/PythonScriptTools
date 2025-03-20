@@ -12,8 +12,8 @@ from localization.localization import get_localized_text
 
 # 开始处理 excel 转为 本地化的语言
 def create_files_from_excel(file_path, output_dir):
-    # 读取 Excel 文件
-    df = pd.read_excel(file_path)
+    # 读取 Excel 文件 keep_default_na 不处理表格中的 nan 值原数据返回
+    df = pd.read_excel(file_path, keep_default_na=False)
     # 找到 Key 行及之后的内容
     key_row_index = df[df.iloc[:, 0] == "Key"].index[0]
     data_start = key_row_index + 1
@@ -39,9 +39,24 @@ def create_files_from_excel(file_path, output_dir):
         # print(f"输出当前的 索引为None: {idx}, item列表: {row}\n {type(column_key)}，key: {column_key} ")
         values = row.iloc[1:]
         for r_idx, r_column in enumerate(values):
+            # 如果 r_column 为空字符串，则查找 values 中下一个非空字符串
+            if not isinstance(r_column, str) or not r_column.strip():
+                r_column = get_valid_value(values, 0)
             for key, value in dir_dict_data.items():
                 file_path = value["writes"][r_idx]
                 writer_data(file_path, column_key, values, r_idx, r_column, key, idx, len(content_df))
+
+
+def get_valid_value(values, start_idx):
+    """
+    获取 `values` 列表中从 `start_idx` 开始的第一个非空字符串值
+    如果全部为空，则返回空字符串 `""`
+    """
+    for i in range(start_idx, len(values)):  # 从当前索引开始遍历
+        val = values.iloc[i]  # 确保使用 `.iloc` 访问按位置取值
+        if isinstance(val, str) and val.strip():  # 确保是非空字符串
+            return val
+    return ""  # 如果全部为空，则返回空字符串
 
 
 def writer_data(file_path, column_key, columns, col_idx, col_val, target_platform, row_idx, max_row_len):

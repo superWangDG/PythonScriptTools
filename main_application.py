@@ -1,3 +1,4 @@
+from scene.ffmpeg_source_code_to_lib import run_ffmpeg_make
 from scene.ios_podfile_handle import run_podfile_handle
 from scene.reset_cache import reset_cache
 from scene.strings_replace import run_strings_replace
@@ -16,7 +17,8 @@ def running():
         "4.执行iOS项目Cocoapods 的管理操作",
         "5.使用ffmpeg 下载媒体",
         "6.iOS多语言文件Value值使用替换的规则替换数据",
-        "7.重置缓存"
+        "7.使用PY编译FFMpeg",
+        "8.重置缓存"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -37,6 +39,8 @@ def running():
         elif choice == 6:
             run_strings_replace()
         elif choice == 7:
+            run_ffmpeg_make()
+        elif choice == 8:
             # 重置后继续执行
             reset_cache()
             running()
