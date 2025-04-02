@@ -20,11 +20,14 @@ def create_files_from_excel(file_path, output_dir):
     # 得到创建文件的声明
     dir_dict_data = get_dir_data_dict(df.iloc[0:data_start - 1])
     content_df = df.iloc[data_start:].reset_index(drop=True)
+
     for key, value in dir_dict_data.items():
         # 判断对应平台是否同时存在 file | folder
         if "file" in value and "folder" in value:
             # 创建文件夹以及得到语言写入的地址
             dir_dict_data[key]["writes"] = create_localizable_dir(key, value, output_dir)
+
+    print(f"output df content length: {len(content_df)}")
 
     # 开始遍历表格内容的数据并且生成指定的本地化语言文件
     for idx, row in content_df.iterrows():
@@ -187,7 +190,8 @@ def run_exc_lang_to_localizable_files():
         print(get_localized_text("cancel_choose_tip"))
         return
     exc_path = find_exc_file(result, '.xlsx')
-    output_directory = os.path.join(os.path.dirname(exc_path), "output")
+    output_path = os.path.splitext(exc_path)[0]
+    output_directory = os.path.join(output_path, "output")
     if os.path.exists(output_directory):
         # 如果文件夹存在删除文件夹
         try:

@@ -1,3 +1,4 @@
+from scene.excel_match_replace import run_excel_match_to_replace
 from scene.ffmpeg_source_code_to_lib import run_ffmpeg_make
 from scene.ios_podfile_handle import run_podfile_handle
 from scene.reset_cache import reset_cache
@@ -18,7 +19,8 @@ def running():
         "5.使用ffmpeg 下载媒体",
         "6.iOS多语言文件Value值使用替换的规则替换数据",
         "7.使用PY编译FFMpeg",
-        "8.重置缓存"
+        "8.重置缓存",
+        "9.将多个表格的内容进行匹配替换"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -44,6 +46,8 @@ def running():
             # 重置后继续执行
             reset_cache()
             running()
+        elif choice == 9:
+            run_excel_match_to_replace()
         else:
             print(f"无效的选择，请输入 1 到 {len(funcs)} 之间的数字。")
     except ValueError:
