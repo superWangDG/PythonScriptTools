@@ -1,5 +1,6 @@
 # 将 ffmpeg 的源码编译到指定的平台库
 import os
+import shutil
 import subprocess
 import sys
 import re
@@ -10,8 +11,9 @@ from utils.file_utils import select_source
 
 # 设置最低部署目标
 DEPLOYMENT_IOS_TARGET = "13.0"
-# 设置目标架构（真机 arm64，模拟器 x86_64）
-ARCHS = ["arm64"]
+# 设置目标架构（真机 arm64，模拟器 x86_64，苹果芯片的模拟器 arm64-sim ）
+# ARCHS = ["arm64", "x86_64", "arm64-sim"]
+ARCHS = ["arm64-sim"]
 
 # 目标平台
 TARGET_OS = "ios"
@@ -46,10 +48,11 @@ def make_and_install():
 def run_ffmpeg_make():
     # directory = select_source(only_folder=True).strip()
     directory = "/Users/wangdegui/Documents/FFMPEG/Source/FFmpeg-master"
-    # compile_ffmpeg_make(directory)
+    compile_ffmpeg_make(directory)
     # ios_generate_ffmpeg(directory)
     # dir_arm64 = "/Users/wangdegui/Documents/FFMPEG/ios-build/arm64"
-    clear_versions("/Users/wangdegui/Documents/FFMPEG/ios-build", "arm64")
+    # clear_versions("/Users/wangdegui/Documents/FFMPEG/ios-build", "arm64")
+    # generate_framework_dir("/Users/wangdegui/Documents/FFMPEG/ios-build", "arm64")
 
 def compile_ffmpeg_make(path):
     """编译ffmpeg需要的环境 x264、libvpx、openssl"""
@@ -76,6 +79,13 @@ def compile_ffmpeg_make(path):
             os.chdir(target_source_dir)
             for ARCH in ARCHS:
                 platform = "iphonesimulator" if ARCH == "x86_64" else "iphoneos"
+                host = "x86_64-apple-darwin" if ARCH == "x86_64" else "apple-darwin"
+                ARCH_NAME = ARCH
+                if ARCH == "arm64-sim":
+                    # 如果也是 m 系列模拟器
+                    platform = "iphonesimulator"
+                    host = "arm-apple-darwin"
+                    ARCH_NAME = "arm64"
                 # 获取 SDK 路径
                 SYSROOT = subprocess.check_output(
                     ["xcrun", "--sdk", platform, "--show-sdk-path"]).decode().strip()
@@ -83,18 +93,20 @@ def compile_ffmpeg_make(path):
                     "./configure",
                     f"--prefix={os.path.join(target_make_dir, ARCH)}",
                     "--enable-static",
-                    f"--extra-cflags=-arch {ARCH} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT}",
+                    f"--extra-cflags=-arch {ARCH_NAME} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT}",
                 ]
                 if dependent_name == "x264":
-                    configure_flags.append("--host=arm-apple-darwin")
+                    configure_flags.append(f"--host={host}")
                     configure_flags.append("--disable-asm")
                     configure_flags.append("--disable-cli")
                     configure_flags.append(
-                        f"--extra-ldflags=-arch {ARCH} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT}")
+                        f"--extra-ldflags=-arch {ARCH_NAME} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT}")
                 elif dependent_name == "libvpx":
                     target = "arm64-darwin-gcc"
                     if ARCH == "x86_64":
-                        target = "x86-iphonesimulator-gcc"
+                        target = "x86_64-iphonesimulator-gcc"
+                        configure_flags.append("--disable-runtime-cpu-detect")
+
                     configure_flags.append(f"--target={target}")
                     configure_flags.append("--enable-vp9")
                     configure_flags.append("--disable-examples")
@@ -108,9 +120,6 @@ def compile_ffmpeg_make(path):
                         f"--prefix={os.path.join(target_make_dir, ARCH)}",
                         f"CFLAGS=-arch {ARCH} -isysroot {SYSROOT} -mios-version-min={DEPLOYMENT_IOS_TARGET}",
                     ]
-
-                # --extra - cflags = "-arch arm64 -mios-version-min=13.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path)"
-                # --extra - cxxflags = "-arch arm64 -mios-version-min=13.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path)"
                 # 如果需要 make 的库已经存在的情况不再执行
                 if os.path.exists(os.path.join(target_make_dir, ARCH)):
                     continue
@@ -133,8 +142,8 @@ def ios_generate_ffmpeg(path):
     # 设置目标架构（真机 arm64，模拟器 x86_64）
     # ARCHS = ["arm64", "x86_64"]
     # 获取当前 Xcode SDK 版本
-    IOS_SDK_VERSION = subprocess.check_output(
-        ["xcrun", "--sdk", "iphoneos", "--show-sdk-version"]).decode().strip()
+    # IOS_SDK_VERSION = subprocess.check_output(
+    #     ["xcrun", "--sdk", "iphoneos", "--show-sdk-version"]).decode().strip()
     # 获取它的上级目录
     parent_dir = os.path.dirname(os.path.dirname(path))
     # 输出目录
@@ -149,24 +158,36 @@ def ios_generate_ffmpeg(path):
 
     # 开始编译不同架构的 FFmpeg
     for ARCH in ARCHS:
-        PLATFORM = "iphonesimulator" if ARCH == "x86_64" else "iphoneos"
+        if ARCH == "x86_64":
+            PLATFORM = "iphonesimulator"
+            ARCH_NAME = "x86_64"
+            OUTPUT_ARCH_DIR = "x86_64"
+        elif ARCH == "arm64-sim":
+            PLATFORM = "iphonesimulator"
+            ARCH_NAME = "arm64"
+            OUTPUT_ARCH_DIR = "arm64-sim"
+        else:  # arm64 真机
+            PLATFORM = "iphoneos"
+            ARCH_NAME = "arm64"
+            OUTPUT_ARCH_DIR = "arm64"
+
         # 获取 SDK 路径
         SYSROOT = subprocess.check_output(
             ["xcrun", "--sdk", PLATFORM, "--show-sdk-path"]).decode().strip()
-        x264I = "ios_x264/arm64/include"
-        x264L = "ios_x264/arm64/lib"
-        libvpxI = "ios_libvpx/arm64/include"
-        libvpxL = "ios_libvpx/arm64/lib"
-        sslI = "ios_openssl/arm64/include"
-        sslL = "ios_openssl/arm64/lib"
+        x264I = f"ios_x264/{ARCH_NAME}/include"
+        x264L = f"ios_x264/{ARCH_NAME}/lib"
+        libvpxI = f"ios_libvpx/{ARCH_NAME}/include"
+        libvpxL = f"ios_libvpx/{ARCH_NAME}/lib"
+        sslI = f"ios_openssl/{ARCH_NAME}/include"
+        sslL = f"ios_openssl/{ARCH_NAME}/lib"
         # 设置编译器
         # CC = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "-find", "clang"]).decode().strip()
-        print(f"Building for architecture: {ARCH}")
+        print(f"Building for architecture: {ARCH_NAME}")
         # 配置 FFmpeg 编译参数
         configure_cmd = [
             "./configure",
-            f"--prefix={os.path.join(OUTPUT_DIR, ARCH)}",
-            f"--arch={ARCH}",
+            f"--prefix={os.path.join(OUTPUT_DIR, OUTPUT_ARCH_DIR)}",
+            f"--arch={ARCH_NAME}",
             "--target-os=darwin",
             "--enable-cross-compile",
             "--enable-shared",
@@ -178,11 +199,11 @@ def ios_generate_ffmpeg(path):
             "--enable-openssl",
             "--enable-nonfree",
             "--enable-gpl",
-            f"--extra-cflags=-arch {ARCH} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT} -D__STDC_NO_STDBIT__ "
+            f"--extra-cflags=-arch {ARCH_NAME} -mios-version-min={DEPLOYMENT_IOS_TARGET} -isysroot {SYSROOT} -D__STDC_NO_STDBIT__ "
             f"-I{os.path.join(dependent_dir, x264I)} "
             f"-I{os.path.join(dependent_dir, libvpxI)} "
             f"-I{os.path.join(dependent_dir, sslI)}",
-            f"--extra-ldflags=-arch {ARCH} -isysroot {SYSROOT} "
+            f"--extra-ldflags=-arch {ARCH_NAME} -isysroot {SYSROOT} "
             f"-L{os.path.join(dependent_dir, x264L)} "
             f"-L{os.path.join(dependent_dir, libvpxL)} "
             f"-L{os.path.join(dependent_dir, sslL)} "
@@ -226,22 +247,64 @@ def clear_versions(root_dir, arch):
                 print(f"File {file} not found.")
             except Exception as e:
                 print(f"Error renaming file: {e}")
-    # 创建 framework 目录
-    # FRAMEWORK_DIR = os.path.join(OUTPUT_DIR, "FFmpeg.framework")
-    # os.makedirs(os.path.join(FRAMEWORK_DIR, "Headers"), exist_ok=True)
-    #
-    # # 复制头文件
-    # header_source = os.path.join(OUTPUT_DIR, "arm64", "include")
-    # header_target = os.path.join(FRAMEWORK_DIR, "Headers")
-    # for header in os.listdir(header_source):
-    #     header_path = os.path.join(header_source, header)
-    #     if os.path.isfile(header_path):
-    #         subprocess.run(["cp", "-R", header_path, header_target])
 
-    # 合并不同架构的静态库
-    # lipo_cmd = [
-    #     "lipo", "-create", "-output", os.path.join(FRAMEWORK_DIR, "FFmpeg"),
-    #     os.path.join(OUTPUT_DIR, "arm64", "lib", "libavcodec.a"),
-    #     os.path.join(OUTPUT_DIR, "x86_64", "lib", "libavcodec.a")
-    # ]
-    # subprocess.run(lipo_cmd, check=True)
+
+def generate_framework_dir(root_dir, arch):
+    """
+    Create .framework directories for each .dylib file.
+    """
+    lib_dir = os.path.join(root_dir, arch, "lib")
+    include_dir = os.path.join(root_dir, arch, "include")
+    frameworks_dir = os.path.join(root_dir, arch, "frameworks")
+
+    os.makedirs(frameworks_dir, exist_ok=True)
+
+    for file in os.listdir(lib_dir):
+        print(f"file address: {file}")
+        if file.endswith(".dylib") and file.startswith("lib"):
+            dylib_path = os.path.join(lib_dir, file)
+
+            # 提取框架名称并格式化成 LibXxx 形式
+            framework_base_name = file[len("lib"):-len(".dylib")]  # e.g., avformat
+            framework_name = f"Lib{framework_base_name}"  # e.g., LibAvformat
+
+            # 创建 .framework 目录
+            framework_dir = os.path.join(frameworks_dir, f"{framework_name}.framework")
+            os.makedirs(framework_dir, exist_ok=True)
+
+            # 拷贝 binary，并重命名为无后缀名（和 framework 同名）
+            target_binary_path = os.path.join(framework_dir, framework_name)
+            shutil.copyfile(dylib_path, target_binary_path)
+
+            # 拷贝 Headers（include/libxxx -> Headers）
+            header_src_dir = os.path.join(include_dir, f"lib{framework_base_name}")
+            header_dest_dir = os.path.join(framework_dir, "Headers")
+            if os.path.exists(header_src_dir):
+                shutil.copytree(header_src_dir, header_dest_dir, dirs_exist_ok=True)
+                print(f"📁 Headers copied to {framework_name}.framework/Headers")
+            else:
+                print(f"⚠️ Warning: Headers for lib{framework_base_name} not found.")
+
+            # 写入 Info.plist
+            plist_path = os.path.join(framework_dir, "Info.plist")
+            with open(plist_path, "w") as f:
+                f.write(f'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>{framework_name}</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.clourdhearing.ffmpeg.{framework_base_name}</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundlePackageType</key>
+    <string>FMWK</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleExecutable</key>
+    <string>{framework_name}</string>
+</dict>
+</plist>
+''')
+            print(f"✅ Created framework: {framework_name}.framework\n")
