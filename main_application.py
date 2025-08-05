@@ -1,3 +1,4 @@
+from scene.auto_download_holiday import run_recursive_download
 from scene.excel_language_generate_key import run_excel_language_generate_key
 from scene.excel_match_replace import run_excel_match_to_replace
 from scene.ffmpeg_source_code_to_lib import run_ffmpeg_make
@@ -10,7 +11,7 @@ from scene.language_to_localizable import run_exc_lang_to_localizable_files
 from scene.excel_orgifile_match_replace import run_exc_org_match_rep
 from scene.ffmpeg_donwload_files import run_download_medias
 
-
+# 当前 脚本执行最要最新的 python 版本 3.12.x以上
 def running():
     # 执行功能分选
     funcs = [
@@ -24,7 +25,8 @@ def running():
         "8.重置缓存",
         "9.将多个表格的内容进行匹配替换",
         "10.合并strings文件。",
-        "11.excel 为多语言文件生成Key"
+        "11.excel 为多语言文件生成Key",
+        "12.批量下载可用的中国节假日json文件"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -61,6 +63,8 @@ def running():
             )
         elif choice == 11:
             run_excel_language_generate_key()
+        elif choice == 12:
+            run_recursive_download()
         else:
             print(f"无效的选择，请输入 1 到 {len(funcs)} 之间的数字。")
     except ValueError:
