@@ -66,6 +66,9 @@ def start_run_generate_key(excel_path, output_directory):
     for _, row in df.iterrows():
         text = str(row[english_col_name])
         key = generate_lang_key(text)
+        # 关键字拦截
+        if key == 'in':
+            key = 'i_n'
         keys.append(key)
 
     df['Key'] = keys
