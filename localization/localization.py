@@ -20,6 +20,7 @@ def get_system_language():
 def get_localized_text(lang_key, **kwargs):
     language_config = load_language_config()
     system_lang = get_system_language()
+    # print("Detected system language:", system_lang)
     lang_code = "en"
     if "zh" in system_lang:
         lang_code = "zh"
