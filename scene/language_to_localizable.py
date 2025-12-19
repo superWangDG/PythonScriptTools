@@ -46,6 +46,8 @@ def create_files_from_excel(file_path, output_dir):
             if not isinstance(r_column, str) or not r_column.strip():
                 r_column = get_valid_value(values, 0)
             for key, value in dir_dict_data.items():
+                print("DEBUG value =", value)
+                print("AVAILABLE KEYS =", value.keys())
                 file_path = value["writes"][r_idx]
                 writer_data(file_path, column_key, values, r_idx, r_column, key, idx, len(content_df))
 
@@ -106,6 +108,33 @@ def writer_data(file_path, column_key, columns, col_idx, col_val, target_platfor
             f.write(f"\t\"{column_key}\": \"{col_val}\",\n")
             if row_idx + 1 == max_row_len:
                 f.write("};")
+            """
+            增加 arb 的生成
+            """
+            intl_arb_path = get_flutter_intl_arb_path(file_path)
+
+            with open(intl_arb_path, "a", encoding="utf-8") as arb_f:
+                if row_idx == 0:
+                    arb_f.write("{\n")
+                    arb_f.write(f'\t"@@locale": "{filename}",\n')
+
+                is_last = (row_idx + 1 == max_row_len)
+
+                if is_last:
+                    arb_f.write(f'\t"{column_key}": "{col_val}"\n')
+                    arb_f.write("}")
+                else:
+                    arb_f.write(f'\t"{column_key}": "{col_val}",\n')
+
+
+
+def get_flutter_intl_arb_path(file_path: str) -> str:
+    """
+    langs/en.dart -> langs/intl_en.arb
+    """
+    dirname = os.path.dirname(file_path)
+    filename = os.path.basename(file_path).split(".")[0]  # en
+    return os.path.join(dirname, f"intl_{filename}.arb")
 
 
 # 使用正则表达式查找并转义未转义的双引号
@@ -168,18 +197,46 @@ def get_dir_data_dict(file_df):
 # 创建本地化的文件夹, 并返回目标文件的地址
 def create_localizable_dir(target_platform, target_dict, root_path):
     file_path_list = []
-    folder_path = os.path.join(root_path, target_platform)
-    child_list = []
-    # 创建子目录
-    for key, value in target_dict.items():
-        for idx, item in enumerate(value):
-            if key == "folder":
-                child_path = os.path.join(folder_path, item)
-                os.makedirs(child_path, exist_ok=True)
-                child_list.append(child_path)
-            elif key == "file":
-                file_path_list.append(os.path.join(child_list[idx], item))
+
+    platform_root = os.path.join(root_path, target_platform)
+    os.makedirs(platform_root, exist_ok=True)
+
+    # ⭐ 关键：归一后的 folder 名 → 实际路径
+    folder_map = {}
+
+    folders = target_dict.get("folder", [])
+    files = target_dict.get("file", [])
+
+    for idx, raw_folder_name in enumerate(folders):
+        normalized_folder = normalize_folder_name(raw_folder_name)
+
+        # 同一个目录只创建一次
+        if normalized_folder not in folder_map:
+            folder_path = os.path.join(platform_root, normalized_folder)
+            os.makedirs(folder_path, exist_ok=True)
+            folder_map[normalized_folder] = folder_path
+
+        # 文件写入归一后的目录
+        if idx < len(files):
+            file_path_list.append(
+                os.path.join(folder_map[normalized_folder], files[idx])
+            )
+
     return file_path_list
+
+
+def normalize_folder_name(name: str) -> str:
+    """
+    仅当目录名以 .数字 结尾时，才认为是 pandas 的重复列后缀
+    """
+    if not isinstance(name, str):
+        return name
+
+    # 只处理 pandas 自动生成的后缀：.1 .2 .3 ...
+    if re.search(r'\.\d+$', name):
+        return re.sub(r'\.\d+$', '', name)
+
+    return name
 
 
 # 使用示例
