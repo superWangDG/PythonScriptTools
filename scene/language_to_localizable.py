@@ -32,6 +32,9 @@ def create_files_from_excel(file_path, output_dir):
     # 开始遍历表格内容的数据并且生成指定的本地化语言文件
     for idx, row in content_df.iterrows():
         column_key = row.values[0]
+        # 🚫 key 为 NaN / 空字符串 / 纯空格 → 跳过
+        if not isinstance(column_key, str) or not column_key.strip():
+            continue
         # 检查并处理 column_key
         if pd.isna(column_key):  # 判断是否是 NaN
             column_key = "None"  # 将 NaN 转为空字符串
@@ -83,8 +86,14 @@ def writer_data(file_path, column_key, columns, col_idx, col_val, target_platfor
             # col_val = columns.iloc[0]  # 使用 values 的第一个数据赋值
             # 找到第一个非空的值
             col_val = next((val for val in columns if isinstance(val, str) and val.strip()), "None")
+
+        # 替换表格中的原本换行操作
+        col_val = escape_excel_newline(col_val)
         # 判断 值内的内容是否存在" 并且没有添加转义符号
         col_val = escape_unescaped_quotes(col_val)
+        # 处理非法的转义符号
+        col_val = sanitize_backslash(col_val)
+
         if target_platform == "iOS":
             # iOS 的存储
             col_val = escape_android_unit_to_ios(col_val)
@@ -145,6 +154,48 @@ def escape_unescaped_quotes(text):
         # 如果不是字符串，返回原始值或其他默认值
         return text
 
+
+def sanitize_backslash(text):
+    """
+    防止错误的反斜杠：
+    - 如果字符串是单个 \ 或 \ 后没有跟字符 → 返回空字符串
+    - 合法转义保留，如 \\ \n \t
+    """
+    if not isinstance(text, str):
+        return text
+
+    # 全部 \ 替换为 placeholder
+    placeholder = "__BACKSLASH__"
+    text = text.replace("\\\\", placeholder)  # 先保护合法的 \\
+
+    # 处理单独的 \ 或 \ 后没有字符
+    # 正则：\ 结尾 或者 单独 \ （除了合法的 placeholder）
+    if re.fullmatch(r"\\+", text):
+        return ""
+    # 如果 \ 在末尾，且不是合法 \\ → 去掉
+    text = re.sub(r"\\$", "", text)
+
+    # 恢复合法的 \\
+    return text.replace(placeholder, "\\")
+
+
+def escape_excel_newline(text):
+    """
+    只将 Excel 中的真实换行符转换为字符串 \\n
+    不影响用户原本输入的 \\n
+    """
+    if not isinstance(text, str):
+        return text
+
+    # 先临时保护已经存在的 \n
+    placeholder = "__EXISTING_NEWLINE__"
+    text = text.replace("\\n", placeholder)
+
+    # 将真实换行（Alt + Enter）转成 \n
+    text = text.replace("\r\n", "\\n").replace("\n", "\\n")
+
+    # 恢复原本的 \n
+    return text.replace(placeholder, "\\n")
 
 # 将Android 中的通用符号转为iOS中使用的符号
 def escape_android_unit_to_ios(text):
