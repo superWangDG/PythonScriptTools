@@ -6,6 +6,7 @@ from scene.ios_podfile_handle import run_podfile_handle
 from scene.ios_strings_out_excel import run_lproj_to_excel
 from scene.merge_strings import merge_strings_files
 from scene.reset_cache import reset_cache
+from scene.run_scan_localized import run_scan_localized_strings
 from scene.strings_replace import run_strings_replace
 from scene.upload_bugly import run_update_bugly
 from scene.language_to_localizable import run_exc_lang_to_localizable_files
@@ -28,7 +29,8 @@ def running():
         "10.合并strings文件。",
         "11.excel 为多语言文件生成Key",
         "12.批量下载可用的中国节假日json文件",
-        "13. lproj 多语言 → Excel 合并工具"
+        "13. lproj 多语言 → Excel 合并工具",
+        "14.NSLocalizedString 扫描工具(含分析)"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -69,6 +71,8 @@ def running():
             run_recursive_download()
         elif choice == 13:
             run_lproj_to_excel()
+        elif choice == 14:
+            run_scan_localized_strings()
 
         else:
             print(f"无效的选择，请输入 1 到 {len(funcs)} 之间的数字。")
