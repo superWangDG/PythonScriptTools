@@ -3,6 +3,7 @@ from scene.excel_language_generate_key import run_excel_language_generate_key
 from scene.excel_match_replace import run_excel_match_to_replace
 from scene.ffmpeg_source_code_to_lib import run_ffmpeg_make
 from scene.ios_podfile_handle import run_podfile_handle
+from scene.ios_strings_out_excel import run_lproj_to_excel
 from scene.merge_strings import merge_strings_files
 from scene.reset_cache import reset_cache
 from scene.strings_replace import run_strings_replace
@@ -26,7 +27,8 @@ def running():
         "9.将多个表格的内容进行匹配替换",
         "10.合并strings文件。",
         "11.excel 为多语言文件生成Key",
-        "12.批量下载可用的中国节假日json文件"
+        "12.批量下载可用的中国节假日json文件",
+        "13. lproj 多语言 → Excel 合并工具"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -65,6 +67,9 @@ def running():
             run_excel_language_generate_key()
         elif choice == 12:
             run_recursive_download()
+        elif choice == 13:
+            run_lproj_to_excel()
+
         else:
             print(f"无效的选择，请输入 1 到 {len(funcs)} 之间的数字。")
     except ValueError:

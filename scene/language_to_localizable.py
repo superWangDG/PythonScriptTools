@@ -19,6 +19,7 @@ def create_files_from_excel(file_path, output_dir):
     data_start = key_row_index + 1
     # 得到创建文件的声明
     dir_dict_data = get_dir_data_dict(df.iloc[0:data_start - 1])
+    print(f"输出: {dir_dict_data}，{key_row_index} {data_start} {df.iloc[0:data_start - 1]} {get_dir_data_dict}")
     content_df = df.iloc[data_start:].reset_index(drop=True)
 
     for key, value in dir_dict_data.items():
@@ -46,9 +47,14 @@ def create_files_from_excel(file_path, output_dir):
         values = row.iloc[1:]
         for r_idx, r_column in enumerate(values):
             # 如果 r_column 为空字符串，则查找 values 中下一个非空字符串
+            # print("DEBUG r_idx =", r_idx)
+
             if not isinstance(r_column, str) or not r_column.strip():
+                # print(f"输出colu:{r_column}")
                 r_column = get_valid_value(values, 0)
+                # print(f"输出colu:{r_column}")
             for key, value in dir_dict_data.items():
+                print("DEBUG writes len =", len(value.get("writes", [])))
                 print("DEBUG value =", value)
                 print("AVAILABLE KEYS =", value.keys())
                 file_path = value["writes"][r_idx]
