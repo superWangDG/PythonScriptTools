@@ -1,4 +1,5 @@
 from scene.auto_download_holiday import run_recursive_download
+from scene.excel_delete_keys import run_excel_delete_keys
 from scene.excel_language_generate_key import run_excel_language_generate_key
 from scene.excel_match_replace import run_excel_match_to_replace
 from scene.ffmpeg_source_code_to_lib import run_ffmpeg_make
@@ -30,7 +31,8 @@ def running():
         "11.excel 为多语言文件生成Key",
         "12.批量下载可用的中国节假日json文件",
         "13. lproj 多语言 → Excel 合并工具",
-        "14.NSLocalizedString 扫描工具(含分析)"
+        "14.NSLocalizedString 扫描工具(含分析)",
+        "15.Excel 多语言删除指定 Key（v15）"
     ]
     print("请选择一个功能:")
     for item in funcs:
@@ -73,7 +75,8 @@ def running():
             run_lproj_to_excel()
         elif choice == 14:
             run_scan_localized_strings()
-
+        elif choice == 15:
+            run_excel_delete_keys()
         else:
             print(f"无效的选择，请输入 1 到 {len(funcs)} 之间的数字。")
     except ValueError:

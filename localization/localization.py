@@ -3,10 +3,15 @@
 import json
 import locale
 import os
+import sys
 
 
 def load_language_config():
-    with open("localization/localization.json", "r", encoding="utf-8") as f:
+    base_dir = getattr(sys, "_MEIPASS", os.getcwd())
+    path = os.path.join(base_dir, "localization", "localization.json")
+    if not os.path.exists(path):
+        path = os.path.join(os.getcwd(), "localization", "localization.json")
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
